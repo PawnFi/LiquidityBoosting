@@ -613,8 +613,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
         require(block.timestamp > raisingInfo.endTime, "not ended");
 
         require(
-            (reachTargetAmount(rId) && raisingInfo.fundraisingStatus == FundraisingStatus.canceled) ||
-            (raisingInfo.fundraisingStatus == FundraisingStatus.processing || raisingInfo.fundraisingStatus == FundraisingStatus.canceled),
+            raisingInfo.fundraisingStatus == FundraisingStatus.processing || raisingInfo.fundraisingStatus == FundraisingStatus.canceled,
             "fundraising status inconsistent"
         );
         if(raisingInfo.fundraisingStatus != FundraisingStatus.canceled) {
