@@ -476,8 +476,8 @@ contract FundingStrategy is OwnableUpgradeable, ERC721HolderUpgradeable {
     function _approveMax(address token, address spender, uint256 amount) private {
         uint256 allowance = IERC20Upgradeable(token).allowance(address(this), spender);
         if(allowance < amount) {
-            IERC20Upgradeable(token).approve(spender, 0);
-            IERC20Upgradeable(token).approve(spender, type(uint256).max);
+            IERC20Upgradeable(token).safeApprove(spender, 0);
+            IERC20Upgradeable(token).safeApprove(spender, type(uint256).max);
         }
     }
 
