@@ -401,6 +401,27 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
     }
 
     /**
+     * @notice Get the owner address of nft id
+     * @param user user address
+     * @param nftAddr nft address
+     * @param nftId nft id
+     * @return address owner address
+     */
+    function nftOwner(address user, address nftAddr, uint256 nftId) external view returns(address) {
+        address token = IPTokenFactory(ptokenFactory).getPiece(nftAddr);
+        for(uint i = 1; i <= roundId; i++) {
+            EnumerableSetUpgradeable.UintSet storage nftIdsAtToken = _userInfoMap[user][i].nftIds[token];
+            for(uint j = 0; j < nftIdsAtToken.length(); j++) {
+                if(nftId == nftIdsAtToken.at(j)) {
+                    return user;
+                }
+            }
+        }
+        
+        return address(0);
+    }
+
+    /**
      * @notice Validate whether committing is allowed
      * @param rId Event ID
      * @param token Token address
@@ -731,8 +752,8 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
             liquidityAmount1 = depositAmount1 + (pct * diffAmount / BASE);
             liquidityAmount0 = pct * returnAmount0 / BASE;
         } else {
-            liquidityAmount0 = (depositAmount0 * BASE / amount0) * returnAmount0 / BASE;
-            liquidityAmount1 = (depositAmount1 * BASE / amount1) * returnAmount1 / BASE;
+            liquidityAmount0 = depositAmount0 * returnAmount0 / amount0;
+            liquidityAmount1 = depositAmount1 * returnAmount1 / amount1;
         }
     }
 
