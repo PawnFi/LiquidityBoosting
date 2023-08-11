@@ -446,7 +446,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @param token token address
      * @param amount Committed amount
      */
-    function raiseFundsToken(uint256 rId, address token, uint256 amount) external payable {
+    function raiseFundsToken(uint256 rId, address token, uint256 amount) external payable onlyEOA {
         require(amount > 0, "raise funds failed");
         uint256 depositAmount = _raiseAllowed(rId, token, amount);
         if(token == WETH && address(this).balance >= depositAmount) {
@@ -463,7 +463,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @param ptoken ptoken address
      * @param ids nft id array
      */
-    function raiseFundsNFT(uint256 rId, address ptoken, uint256[] memory ids) external payable {
+    function raiseFundsNFT(uint256 rId, address ptoken, uint256[] memory ids) external payable onlyEOA {
         address nftAddr = IPTokenFactory(ptokenFactory).getNftAddress(ptoken);
         require(nftAddr != address(0), "nft address not exist");
         uint256 idsLength = ids.length;
@@ -628,10 +628,10 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @notice Target not reached - refund
      * @param rId EventID
      */
-    function refundAsset(uint256 rId) external {
+    function refundAsset(uint256 rId) external onlyEOA {
         FundraisingInfo storage raisingInfo = _fundraisingInfoMap[rId];
 
-        require(block.timestamp > raisingInfo.endTime, "not ended");
+        require(block.timestamp > raisingInfo.endTime && raisingInfo.endTime > 0, "not ended");
 
         require(
             raisingInfo.fundraisingStatus == FundraisingStatus.processing || raisingInfo.fundraisingStatus == FundraisingStatus.canceled,
@@ -660,7 +660,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @notice Exit strategy
      * @param rId EventId
      */
-    function exitStrategy(uint256 rId) external {
+    function exitStrategy(uint256 rId) external onlyEOA {
         FundraisingInfo storage raisingInfo = _fundraisingInfoMap[rId];
         require(block.timestamp > raisingInfo.unlockTime, "time error");
         require(raisingInfo.fundraisingStatus == FundraisingStatus.finished, "fundraising status inconsistent");
@@ -672,7 +672,8 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @notice Withdraw asset
      * @param rId EventId
      */
-    function withdrawAsset(uint256 rId) external {
+    function withdrawAsset(uint256 rId) external onlyEOA {
+        
         FundraisingInfo storage raisingInfo = _fundraisingInfoMap[rId];
         require(block.timestamp > raisingInfo.unlockTime, "time error");
         require(raisingInfo.fundraisingStatus == FundraisingStatus.finished || raisingInfo.fundraisingStatus == FundraisingStatus.received, "fundraising status inconsistent");
@@ -781,7 +782,11 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @notice Claim committed token
      * @param rId EventID
      */
-    function claim(uint256 rId) external {
+    function claim(uint256 rId) external onlyEOA {
+        require(rId <= roundId);
+        FundraisingInfo storage raisingInfo = _fundraisingInfoMap[rId];
+        require(block.timestamp > raisingInfo.unlockTime && raisingInfo.unlockTime > 0, "not ended");
+
         // (address token0, address token1, uint256 amount0, uint256 amount1, uint256 withdrawAmount0, uint256 withdrawAmount1, uint256[] idsAtToken0, uint256[] idsAtToken1)
         (address token0, address token1, , , , , uint256[] memory idsAtToken0, uint256[] memory idsAtToken1) = getUserInfo(msg.sender, rId);
 
@@ -804,7 +809,10 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
      * @notice Claim reward token
      * @param rId EventId
      */
-    function claimRewardToken(uint256 rId) external {
+    function claimRewardToken(uint256 rId) external onlyEOA {
+        require(rId <= roundId);
+        FundraisingInfo storage raisingInfo = _fundraisingInfoMap[rId];
+        require(block.timestamp > raisingInfo.unlockTime && raisingInfo.unlockTime > 0, "not ended");
         address[] memory tokens = new address[](1);
         tokens[0] = _fundraisingInfoMap[rId].rewardToken;
         _claim(rId, msg.sender, tokens);
@@ -839,7 +847,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
     /**
      * @notice Refund ETH
      */
-    function refundETH() public payable {
+    function refundETH() public payable onlyEOA {
         uint256 bal = address(this).balance;
         if(bal > 0) {
             payable(msg.sender).transfer(bal);
@@ -908,4 +916,9 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
     }
 
     receive() external payable {}
+
+    modifier onlyEOA() {
+        require(tx.origin == msg.sender, "Only EOA");
+        _;
+    }
 }
