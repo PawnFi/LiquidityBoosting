@@ -575,6 +575,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
         for(uint8 i = 0; i < tokens.length; i++) {
             if(raisingInfo.amounts[tokens[i]] < raisingInfo.targetAmounts[tokens[i]]) {
                 success = false;
+                break;
             }
         }
     }
