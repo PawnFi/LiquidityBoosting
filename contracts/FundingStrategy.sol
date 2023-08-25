@@ -545,7 +545,7 @@ contract FundingStrategy is OwnableUpgradeable, ERC721HolderUpgradeable {
         uint256 itoken0 = investmentInfo.itokens[token0];
         uint256 itoken1 = investmentInfo.itokens[token1];
         if(itoken0 > 0) {
-            uint256 income0 = _withdrawLendPool(lendPools[token0], token0, investmentInfo.itokens[token0]);
+            uint256 income0 = _withdrawLendPool(lendPools[token0], token0, itoken0);
             if(income0 >= investmentInfo.remainingAmounts[token0]) {
                 investmentInfo.bonus[token0] = income0 - investmentInfo.remainingAmounts[token0];
             }
@@ -554,7 +554,7 @@ contract FundingStrategy is OwnableUpgradeable, ERC721HolderUpgradeable {
             amount0 = investmentInfo.remainingAmounts[token0];
         }
         if(itoken1 > 0) {
-            uint256 income1 = _withdrawLendPool(lendPools[token1], token1, investmentInfo.itokens[token1]);
+            uint256 income1 = _withdrawLendPool(lendPools[token1], token1, itoken1);
             if(income1 >= investmentInfo.remainingAmounts[token1]) {
                 investmentInfo.bonus[token1] = income1 - investmentInfo.remainingAmounts[token1];
             }
