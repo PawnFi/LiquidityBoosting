@@ -919,7 +919,7 @@ contract LB is MulticallUpgradeable, OwnableUpgradeable, ERC721HolderUpgradeable
     receive() external payable {}
 
     modifier onlyEOA() {
-        require(tx.origin == msg.sender, "Only EOA");
+        require(tx.origin == msg.sender && address(msg.sender).code.length == 0, "Only EOA");
         _;
     }
 }
